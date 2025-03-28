@@ -1,0 +1,16 @@
+.user-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+}
+
+.no-users {
+    font-size: 18px;
+    color: #666;
+    text-align: center;
+    width: 100%;
+}

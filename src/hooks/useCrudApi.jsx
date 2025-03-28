@@ -1,56 +1,44 @@
-import {useState, useEffect} from 'react'
-import axios from 'axios'
+import { useState, useEffect } from "react";
+import axios from "axios";
 
-export function useCrudApi (url) {
-    
-    const [list, setList] = useState([])
-    const api = axios.create({
-        baseURL: url
-    })
+export function useCrudApi(baseUrl) {
+    const [data, setData] = useState([]);
 
-    const request = async (method = 'GET', body = null, id = null) => {
-        try {
-            const res = await api({
-                method,
-                url: id ? `${id}/` : '',
-                data: body
-            })
-
-            return res.data
-        }   catch (error) {
-            console.log(error)
-        }
-    }
 
     useEffect(() => {
-        read()
-    }, [])
+        axios.get(baseUrl)
+          .then(response => setData(Array.isArray(response.data) ? response.data : []))
+          .catch(error => console.error("Fetch Error:", error));
+      }, [baseUrl]);
+      
 
-    const create = async (newItem) => {
-        const data = await request('POST', newItem)
-        if (data) setList((prev) => [...prev, data])
-    } 
-
-    const read = async () => {
-        const data = await request()
-        if (data.results) setList(data.results)
+  const create = async (newItem) => {
+    try {
+      const response = await axios.post(baseUrl, newItem);
+      setData(prevData => [...prevData, response.data]);
+    } catch (error) {
+      console.error("Create Error:", error.response?.data || error.message);
     }
+  };
 
-    const update = async (id, updatedItem, method = 'PUT') => {
-        const data = await request(method, updatedItem, id)
-        if (data) setList((prev) => prev.map(item => item.id === id? data : item))
+  const update = async (id, updatedItem) => {
+    try {
+      const response = await axios.put(`${baseUrl}${id}/`, updatedItem);
+      setData(prevData => prevData.map(item => item.id === id ? response.data : item));
+    } catch (error) {
+      console.error("Update Error:", error.response?.data || error.message);
     }
+  };
 
-    const remove = async (id) => {
-        try {
-            await api.delete(`${id}`)
-            setList((prev) => prev.filter(item => item.id !== id))
-        } catch (error) {
-            console.log(error)
-        }
+  const remove = async (id) => {
+    try {
+      await axios.delete(`${baseUrl}${id}`);
+      setData((prevData) => prevData.filter((user) => user.id !== id));
+    } catch (error) {
+      console.error("Delete Error:", error);
     }
+  };
+  
 
-    return [list, {create, update, remove}]
-}   
-
-
+  return [data, { create, update, remove }];
+}
